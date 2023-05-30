@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"bytes"
 	"database/sql"
 	"encoding/json"
 	"net/http"
@@ -14,7 +15,8 @@ import (
 )
 
 type Shop struct {
-	Name string `json:"name"`
+	Name       string `json:"name"`
+	WebhookURL string `json:"webhookURL"`
 }
 
 var db *sql.DB
@@ -44,13 +46,41 @@ func addShop(w http.ResponseWriter, r *http.Request) {
 	var newShop Shop
 	json.NewDecoder(r.Body).Decode(&newShop)
 
-	_, err := db.Exec("INSERT INTO shops (name) VALUES ($1)", newShop.Name)
+	_, err := db.Exec("INSERT INTO shops (name, webhookURL) VALUES ($1, $2)", newShop.Name, newShop.WebhookURL)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	rows, err := db.Query("SELECT name, webhookURL FROM shops")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var shop Shop
+		if err := rows.Scan(&shop.Name, &shop.WebhookURL); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		go sendWebhook(shop.WebhookURL, newShop)
+	}
+
 	json.NewEncoder(w).Encode(newShop)
+}
+
+
+func sendWebhook(webhookURL string, newShop Shop) {
+	jsonData, _ := json.Marshal(newShop)
+
+	resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		log.Printf("Failed to send webhook to %s: %v\n", webhookURL, err)
+		return
+	}
+	defer resp.Body.Close()
 }
 
 func main() {
