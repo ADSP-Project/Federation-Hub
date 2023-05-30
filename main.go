@@ -102,5 +102,9 @@ func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/shops", getShops).Methods("GET")
 	router.HandleFunc("/shops", addShop).Methods("POST")
-	http.ListenAndServe(":8000", router)
+	
+	port := ":8000"
+    log.Printf("Federation hub is running on port%s", port)
+
+    http.ListenAndServe(port, router)
 }
