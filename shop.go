@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"net/url"
 
 	"github.com/gorilla/mux"
 )
@@ -46,10 +47,26 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 func joinFederation(shopName string) {
 	newShop := Shop{Name: shopName, WebhookURL: fmt.Sprintf("http://localhost:%s/webhook", os.Args[1])}
 
-	jsonData, _ := json.Marshal(newShop)
-
-	resp, err := http.Post(federationServer+"/shops", "application/json", bytes.NewBuffer(jsonData))
+	resp, err := http.PostForm("http://localhost:8080/login", url.Values{"name": {shopName}, "webhookURL": {newShop.WebhookURL}})
 	if err != nil {
+		log.Fatal("Failed to authenticate with auth server")
+	}
+	defer resp.Body.Close()
+	
+	var result map[string]string
+	json.NewDecoder(resp.Body).Decode(&result)
+	
+	accessToken := result["access_token"]
+
+	jsonData, _ := json.Marshal(newShop)
+	req, err := http.NewRequest("POST", federationServer+"/shops", bytes.NewBuffer(jsonData))
+	req.Header.Set("Authorization", accessToken)
+
+	fmt.Println(accessToken)
+	
+	resp, err = http.DefaultClient.Do(req)
+	fmt.Println(resp.StatusCode)
+	if err != nil || resp.StatusCode != http.StatusOK {
 		log.Printf("Failed to join federation: %v\n", err)
 		return
 	}

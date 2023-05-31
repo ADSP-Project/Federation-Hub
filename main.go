@@ -43,10 +43,20 @@ func getShops(w http.ResponseWriter, r *http.Request) {
 }
 
 func addShop(w http.ResponseWriter, r *http.Request) {
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", "http://localhost:8080/validate", nil)
+	req.Header.Add("Authorization", r.Header.Get("Authorization"))
+	resp, err := client.Do(req)
+
+	if err != nil || resp.StatusCode != http.StatusOK {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	var newShop Shop
 	json.NewDecoder(r.Body).Decode(&newShop)
 
-	_, err := db.Exec("INSERT INTO shops (name, webhookURL) VALUES ($1, $2)", newShop.Name, newShop.WebhookURL)
+	_, err = db.Exec("INSERT INTO shops (name, webhookURL) VALUES ($1, $2)", newShop.Name, newShop.WebhookURL)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
