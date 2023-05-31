@@ -62,10 +62,7 @@ func joinFederation(shopName string) {
 	req, err := http.NewRequest("POST", federationServer+"/shops", bytes.NewBuffer(jsonData))
 	req.Header.Set("Authorization", accessToken)
 
-	fmt.Println(accessToken)
-	
 	resp, err = http.DefaultClient.Do(req)
-	fmt.Println(resp.StatusCode)
 	if err != nil || resp.StatusCode != http.StatusOK {
 		log.Printf("Failed to join federation: %v\n", err)
 		return
