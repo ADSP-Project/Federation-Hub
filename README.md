@@ -49,9 +49,18 @@ This repository contains the code for setting up a federated marketplace using G
    - Update the database credentials in the `.env` file to match your PostgreSQL setup.
 
 4. Install dependencies:
-   - Install the required Go dependencies by running the following command:
 
-        `go mod download`
+   - Make sure to initialize go.mod to manage dependencies:
+   
+      `go mod init github.com/ADSP-Project/Federation-Hub`
+
+   - Fetch and arrange them into newly generated go.mod:
+   
+      `go mod tidy`
+
+   - Finally, install the required dependencies with the following command:
+   
+      `go mod download`
 
 5. Run the Go server:
    - Start the Go server using the following command:
