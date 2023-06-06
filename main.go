@@ -17,14 +17,14 @@ import (
 type Shop struct {
 	Name       string `json:"name"`
 	WebhookURL string `json:"webhookURL"`
-	PubKey_pem string `json:"pubKey_pem"`
+	PublicKey string `json:"publicKey"`
 }
 
 var db *sql.DB
 
 func getShops(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Polling request received...Checking database....")
-	rows, err := db.Query("SELECT name, pubkey_pem FROM shops")
+	rows, err := db.Query("SELECT name, publicKey FROM shops")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -36,18 +36,18 @@ func getShops(w http.ResponseWriter, r *http.Request) {
 		var shop Shop
 		var (
 			shopnameVar string
-			pKeyVar     string
+			PublicKey     string
 		)
 
-		if err := rows.Scan(&shopnameVar, &pKeyVar); err != nil {
-			fmt.Printf("Error! %s key is %s\n", shopnameVar, pKeyVar)
+		if err := rows.Scan(&shopnameVar, &PublicKey); err != nil {
+			fmt.Printf("Error! %s key is %s\n", shopnameVar, PublicKey)
 
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		shop.Name = shopnameVar
-		shop.PubKey_pem = pKeyVar
-		log.Printf("attempting append of %s with %s to shops array", shop.Name, shop.PubKey_pem)
+		shop.PublicKey = PublicKey
+		log.Printf("attempting append of %s with %s to shops array", shop.Name, shop.PublicKey)
 		shops = append(shops, shop)
 		log.Printf("appending successful")
 	}
@@ -76,7 +76,7 @@ func addShop(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Inserting into database")
 
-	_, err = db.Exec("INSERT INTO shops (name, webhookURL, pubKey_pem) VALUES ($1, $2, $3)", newShop.Name, newShop.WebhookURL, newShop.PubKey_pem)
+	_, err = db.Exec("INSERT INTO shops (name, webhookURL, publicKey) VALUES ($1, $2, $3)", newShop.Name, newShop.WebhookURL, newShop.PublicKey)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

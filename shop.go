@@ -20,7 +20,7 @@ import (
 type Shop struct {
 	Name       string `json:"name"`
 	WebhookURL string `json:"webhookURL"`
-	PubKey_pem string `json:"pubKey_pem"`
+	PublicKey string `json:"publicKey"`
 }
 
 var federationServer = "http://localhost:8000"
@@ -48,30 +48,31 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("New shop joined the federation: %s\n", newShop.Name)
 
-	fmt.Printf("Public Key: %s", newShop.PubKey_pem)
+	fmt.Printf("Public Key: %s", newShop.PublicKey)
 }
 
-func ExportPublicKeyAsPemStr(pubkey *rsa.PublicKey) string {
-	pubkey_pem := string(pem.EncodeToMemory(&pem.Block{Type: "RSA PUBLIC KEY", Bytes: x509.MarshalPKCS1PublicKey(pubkey)}))
-	return pubkey_pem
+func exportPublicKeyAsPemStr(pubkey *rsa.PublicKey) string {
+	PublicKey := string(pem.EncodeToMemory(&pem.Block{Type: "RSA PUBLIC KEY", Bytes: x509.MarshalPKCS1PublicKey(pubkey)}))
+	return PublicKey
 }
-func ExportPrivateKeyAsPemStr(privatekey *rsa.PrivateKey) string {
+
+func exportPrivateKeyAsPemStr(privatekey *rsa.PrivateKey) string {
 	privatekey_pem := string(pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(privatekey)}))
 	return privatekey_pem
 }
 
 func joinFederation(shopName string) {
 
-	PrivKey, err := rsa.GenerateKey(rand.Reader, 128)
-	privatekey_pem := ExportPrivateKeyAsPemStr(PrivKey)
-	pubKey_pem := ExportPublicKeyAsPemStr(&PrivKey.PublicKey)
+	privKey, err := rsa.GenerateKey(rand.Reader, 128)
+	privatekey_pem := exportPrivateKeyAsPemStr(privKey)
+	PublicKey := exportPublicKeyAsPemStr(&privKey.PublicKey)
 
-	newShop := Shop{Name: shopName, WebhookURL: fmt.Sprintf("http://localhost:%s/webhook", os.Args[1]), PubKey_pem: pubKey_pem}
+	newShop := Shop{Name: shopName, WebhookURL: fmt.Sprintf("http://localhost:%s/webhook", os.Args[1]), PublicKey: PublicKey}
 
-	log.Printf("New Shop Private Key is %s", privatekey_pem)
-	log.Printf("New Shop Public key is %s", newShop.PubKey_pem)
+	log.Printf("New Shop Private Key is \n %s", privatekey_pem)
+	log.Printf("New Shop Public key is \n %s", newShop.PublicKey)
 
-	resp, err := http.PostForm("http://localhost:8081/login", url.Values{"name": {shopName}, "webhookURL": {newShop.WebhookURL}, "pubKey_pem": {newShop.PubKey_pem}})
+	resp, err := http.PostForm("http://localhost:8081/login", url.Values{"name": {shopName}, "webhookURL": {newShop.WebhookURL}, "publicKey": {newShop.PublicKey}})
 	if err != nil {
 		log.Fatal("Failed to authenticate with auth server")
 	}
