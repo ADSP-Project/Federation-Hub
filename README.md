@@ -74,7 +74,7 @@ This repository contains the code for setting up a federated marketplace using G
 
       `go run authServer.go`
 
-   - The server will start running on port 8080 by default.
+   - The server will start running on port 8081 by default.
 
 7. Simulate a shop joining the federation:
    - To simulate a shop joining the federation, open a new terminal and run the following command:
