@@ -2,13 +2,17 @@ package main
 
 import (
 	"bytes"
-	"time"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"net/url"
+	"os"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -16,6 +20,7 @@ import (
 type Shop struct {
 	Name       string `json:"name"`
 	WebhookURL string `json:"webhookURL"`
+	PublicKey string `json:"publicKey"`
 }
 
 var federationServer = "http://localhost:8000"
@@ -42,20 +47,40 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 	json.NewDecoder(r.Body).Decode(&newShop)
 
 	fmt.Printf("New shop joined the federation: %s\n", newShop.Name)
+
+	fmt.Printf("Public Key: %s", newShop.PublicKey)
+}
+
+func exportPublicKeyAsPemStr(pubkey *rsa.PublicKey) string {
+	PublicKey := string(pem.EncodeToMemory(&pem.Block{Type: "RSA PUBLIC KEY", Bytes: x509.MarshalPKCS1PublicKey(pubkey)}))
+	return PublicKey
+}
+
+func exportPrivateKeyAsPemStr(privatekey *rsa.PrivateKey) string {
+	privatekey_pem := string(pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(privatekey)}))
+	return privatekey_pem
 }
 
 func joinFederation(shopName string) {
-	newShop := Shop{Name: shopName, WebhookURL: fmt.Sprintf("http://localhost:%s/webhook", os.Args[1])}
 
-	resp, err := http.PostForm("http://localhost:8080/login", url.Values{"name": {shopName}, "webhookURL": {newShop.WebhookURL}})
+	privKey, err := rsa.GenerateKey(rand.Reader, 128)
+	privatekey_pem := exportPrivateKeyAsPemStr(privKey)
+	PublicKey := exportPublicKeyAsPemStr(&privKey.PublicKey)
+
+	newShop := Shop{Name: shopName, WebhookURL: fmt.Sprintf("http://localhost:%s/webhook", os.Args[1]), PublicKey: PublicKey}
+
+	log.Printf("New Shop Private Key is \n %s", privatekey_pem)
+	log.Printf("New Shop Public key is \n %s", newShop.PublicKey)
+
+	resp, err := http.PostForm("http://localhost:8081/login", url.Values{"name": {shopName}, "webhookURL": {newShop.WebhookURL}, "publicKey": {newShop.PublicKey}})
 	if err != nil {
 		log.Fatal("Failed to authenticate with auth server")
 	}
 	defer resp.Body.Close()
-	
+
 	var result map[string]string
 	json.NewDecoder(resp.Body).Decode(&result)
-	
+
 	accessToken := result["access_token"]
 
 	jsonData, _ := json.Marshal(newShop)
