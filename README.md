@@ -42,7 +42,7 @@ This repository contains the code for setting up a federated marketplace using G
         id SERIAL PRIMARY KEY,
         name VARCHAR(255),
         webhookURL VARCHAR(255)
-        pubKey_pem VARCHAR(1024)
+        publicKey VARCHAR(1024)
         );``
 
 3. Configure environment variables:
