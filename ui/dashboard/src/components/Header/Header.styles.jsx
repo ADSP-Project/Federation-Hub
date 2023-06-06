@@ -4,7 +4,6 @@ export const HeaderContainer = styled.header`
   background-color: #808080;
   padding: 1em;
   display: flex;
-  justify-content: space-between;
   align-items: center;
 `;
 
@@ -21,8 +20,17 @@ export const LoginButton = styled.button`
   padding: 0.5em 1em;
   border-radius: 0.25em;
   cursor: pointer;
+  margin-left: auto;
 `;
 
 export const Link = styled.a`
   color: white;
-`
+`;
+
+export const Logo = styled.h1`
+  color: white;
+  font-size: 1.5em;
+  margin: 0;
+  font-weight: bold;
+  padding-right: 20px;
+`;
