@@ -1,11 +1,12 @@
-import { HeaderContainer, Navigation, LoginButton, Link } from "./Header.styles"
+import { HeaderContainer, Navigation, LoginButton, Link, Logo } from "./Header.styles"
 
 const Header = () => (
   <HeaderContainer>
+    <Link href="/">
+      <Logo>Federation Hub</Logo>
+    </Link>
     <Navigation>
-      <Link href="/">Home</Link>
-      <Link href="/about">About</Link>
-      <Link href="/shops">Shops</Link>
+      <Link href="/partners">Partners</Link>
     </Navigation>
     <LoginButton>Login</LoginButton>
   </HeaderContainer>
