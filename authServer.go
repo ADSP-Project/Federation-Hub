@@ -1,12 +1,13 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"log"
 	"net/http"
 	"time"
-	"crypto/rand"
-	"encoding/base64"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 )
@@ -14,6 +15,7 @@ import (
 type Shop struct {
 	Name       string `json:"name"`
 	WebhookURL string `json:"webhookURL"`
+	PubKey_pem string `json:"pubKey_pem"`
 }
 
 type jwtToken struct {
@@ -24,12 +26,12 @@ var jwtKey = []byte("my_secret_key")
 var refreshTokens = make(map[string]string)
 
 func generateRefreshToken() (string, error) {
-    b := make([]byte, 32)
-    _, err := rand.Read(b)
-    if err != nil {
-        return "", err
-    }
-    return base64.URLEncoding.EncodeToString(b), nil
+	b := make([]byte, 32)
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", err
+	}
+	return base64.URLEncoding.EncodeToString(b), nil
 }
 
 func generateJwtToken(name string) (string, error) {
@@ -75,51 +77,51 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	refreshToken, err := generateRefreshToken()
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-    }
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-    refreshTokens[refreshToken] = shop.Name
+	refreshTokens[refreshToken] = shop.Name
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(struct {
-        AccessToken  string `json:"access_token"`
-        RefreshToken string `json:"refresh_token"`
-    }{AccessToken: tokenString, RefreshToken: refreshToken})
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(struct {
+		AccessToken  string `json:"access_token"`
+		RefreshToken string `json:"refresh_token"`
+	}{AccessToken: tokenString, RefreshToken: refreshToken})
 }
 
 func refreshToken(w http.ResponseWriter, r *http.Request) {
-    var body struct {
-        RefreshToken string `json:"refresh_token"`
-    }
+	var body struct {
+		RefreshToken string `json:"refresh_token"`
+	}
 
-    json.NewDecoder(r.Body).Decode(&body)
+	json.NewDecoder(r.Body).Decode(&body)
 
-    if originalName, ok := refreshTokens[body.RefreshToken]; ok {
-        delete(refreshTokens, body.RefreshToken)
-        accessToken, err := generateJwtToken(originalName)
-        if err != nil {
-            http.Error(w, err.Error(), http.StatusInternalServerError)
-            return
-        }
+	if originalName, ok := refreshTokens[body.RefreshToken]; ok {
+		delete(refreshTokens, body.RefreshToken)
+		accessToken, err := generateJwtToken(originalName)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-        refreshToken, err := generateRefreshToken()
-        if err != nil {
-            http.Error(w, err.Error(), http.StatusInternalServerError)
-            return
-        }
+		refreshToken, err := generateRefreshToken()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-        refreshTokens[refreshToken] = originalName
+		refreshTokens[refreshToken] = originalName
 
-        w.Header().Set("Content-Type", "application/json")
-        json.NewEncoder(w).Encode(struct {
-            AccessToken  string `json:"access_token"`
-            RefreshToken string `json:"refresh_token"`
-        }{AccessToken: accessToken, RefreshToken: refreshToken})
-    } else {
-        http.Error(w, "Invalid refresh token", http.StatusUnauthorized)
-    }
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(struct {
+			AccessToken  string `json:"access_token"`
+			RefreshToken string `json:"refresh_token"`
+		}{AccessToken: accessToken, RefreshToken: refreshToken})
+	} else {
+		http.Error(w, "Invalid refresh token", http.StatusUnauthorized)
+	}
 }
 
 func validateToken(w http.ResponseWriter, r *http.Request) {
@@ -135,10 +137,10 @@ func validateToken(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-    router := mux.NewRouter()
-    router.HandleFunc("/login", login).Methods("POST")
-    router.HandleFunc("/token", refreshToken).Methods("POST")
-    router.HandleFunc("/validate", validateToken).Methods("GET")
+	router := mux.NewRouter()
+	router.HandleFunc("/login", login).Methods("POST")
+	router.HandleFunc("/token", refreshToken).Methods("POST")
+	router.HandleFunc("/validate", validateToken).Methods("GET")
 
-    log.Fatal(http.ListenAndServe(":8080", router))
+	log.Fatal(http.ListenAndServe(":8081", router))
 }
