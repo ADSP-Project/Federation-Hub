@@ -57,15 +57,6 @@ func getShops(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(shops)
 }
 
-/*func ExportPublicKeyAsPemStr(pubkey *rsa.PublicKey) string {
-	pubkey_pem := string(pem.EncodeToMemory(&pem.Block{Type: "RSA PUBLIC KEY", Bytes: x509.MarshalPKCS1PublicKey(pubkey)}))
-	return pubkey_pem
-}
-func ExportPrivateKeyAsPemStr(privatekey *rsa.PrivateKey) string {
-	privatekey_pem := string(pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(privatekey)}))
-	return privatekey_pem
-}*/
-
 func addShop(w http.ResponseWriter, r *http.Request) {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", "http://localhost:8081/validate", nil)
