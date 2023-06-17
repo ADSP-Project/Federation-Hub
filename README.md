@@ -42,6 +42,7 @@ This repository contains the code for setting up a federated marketplace using G
         id SERIAL PRIMARY KEY,
         name VARCHAR(255),
         webhookURL VARCHAR(255)
+        publicKey VARCHAR(1024)
         );``
 
 3. Configure environment variables:
@@ -62,14 +63,21 @@ This repository contains the code for setting up a federated marketplace using G
    
       `go mod download`
 
-5. Run the Go server:
+5. Run the main server:
    - Start the Go server using the following command:
 
         `go run main.go`
 
    - The server will start running on port 8000 by default.
 
-6. Simulate a shop joining the federation:
+6. Run the authentification server:
+   - Start the authentification server using the following command:
+
+      `go run authServer.go`
+
+   - The server will start running on port 8081 by default.
+
+7. Simulate a shop joining the federation:
    - To simulate a shop joining the federation, open a new terminal and run the following command:
 
      `go run shop.go [port] [name]`
@@ -78,8 +86,8 @@ This repository contains the code for setting up a federated marketplace using G
 
      This will start a shop server that automatically joins the federation by sending a POST request to the federation server.
 
-7. Access the federated marketplace:
+8. Access the federated marketplace:
    - You can now access the federated marketplace at `http://localhost:8000`.
 
-8. Additional Notes:
+9. Additional Notes:
    - You can run multiple instances of the shop server by providing different port numbers and shop names.
