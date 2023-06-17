@@ -2,7 +2,6 @@ import { Tile, TileHeader, TileBody, TileFooter, JoinButton, Image } from './Sho
 
 const ShopTile = ({ shop }) => (
   <Tile>
-    <Image src={shop.img} alt={shop.name} />
     <TileHeader>{shop.name}</TileHeader>
     <TileBody>{shop.description}</TileBody>
     <TileFooter>
