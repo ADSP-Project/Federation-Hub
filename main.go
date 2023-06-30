@@ -24,7 +24,7 @@ var db *sql.DB
 
 func getShops(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Polling request received...Checking database....")
-	rows, err := db.Query("SELECT name, publicKey FROM shops")
+	rows, err := db.Query("SELECT name, webhookURL, publicKey FROM shops")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -35,19 +35,21 @@ func getShops(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var shop Shop
 		var (
-			shopnameVar string
+			shopnameVar   string
+			webhookURL    string
 			PublicKey     string
 		)
 
-		if err := rows.Scan(&shopnameVar, &PublicKey); err != nil {
-			fmt.Printf("Error! %s key is %s\n", shopnameVar, PublicKey)
+		if err := rows.Scan(&shopnameVar, &webhookURL, &PublicKey); err != nil {
+			fmt.Printf("Error! %s key is %s\n", shopnameVar, webhookURL, PublicKey)
 
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		shop.Name = shopnameVar
+		shop.WebhookURL = webhookURL
 		shop.PublicKey = PublicKey
-		log.Printf("attempting append of %s with %s to shops array", shop.Name, shop.PublicKey)
+		log.Printf("attempting append of %s with %s to shops array", shop.Name, shop.WebhookURL, shop.PublicKey)
 		shops = append(shops, shop)
 		log.Printf("appending successful")
 	}
