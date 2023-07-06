@@ -18,13 +18,14 @@ type Shop struct {
 	Name       string `json:"name"`
 	WebhookURL string `json:"webhookURL"`
 	PublicKey string `json:"publicKey"`
+	Description string `json:"description"`
 }
 
 var db *sql.DB
 
 func getShops(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Polling request received...Checking database....")
-	rows, err := db.Query("SELECT name, webhookURL, publicKey FROM shops")
+	rows, err := db.Query("SELECT name, webhookURL, publicKey, description FROM shops")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -38,10 +39,11 @@ func getShops(w http.ResponseWriter, r *http.Request) {
 			shopnameVar   string
 			webhookURL    string
 			PublicKey     string
+			description   string
 		)
 
-		if err := rows.Scan(&shopnameVar, &webhookURL, &PublicKey); err != nil {
-			fmt.Printf("Error! %s key is %s\n", shopnameVar, webhookURL, PublicKey)
+		if err := rows.Scan(&shopnameVar, &webhookURL, &PublicKey, &description); err != nil {
+			fmt.Printf("Error! %s key is %s\n", shopnameVar, webhookURL, PublicKey, description)
 
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -49,7 +51,8 @@ func getShops(w http.ResponseWriter, r *http.Request) {
 		shop.Name = shopnameVar
 		shop.WebhookURL = webhookURL
 		shop.PublicKey = PublicKey
-		log.Printf("attempting append of %s with %s to shops array", shop.Name, shop.WebhookURL, shop.PublicKey)
+		shop.Description = description
+		log.Printf("attempting append of %s to shops array", shop.Name)
 		shops = append(shops, shop)
 		log.Printf("appending successful")
 	}
@@ -61,7 +64,8 @@ func getShops(w http.ResponseWriter, r *http.Request) {
 
 func addShop(w http.ResponseWriter, r *http.Request) {
 	client := &http.Client{}
-	req, _ := http.NewRequest("GET", "http://localhost:8081/validate", nil)
+	auth_server := os.Getenv("AUTH_SERVER")
+	req, _ := http.NewRequest("GET", auth_server+"/validate", nil)
 	req.Header.Add("Authorization", r.Header.Get("Authorization"))
 	resp, err := client.Do(req)
 
@@ -76,9 +80,22 @@ func addShop(w http.ResponseWriter, r *http.Request) {
 
 	json.NewDecoder(r.Body).Decode(&newShop)
 
+	log.Printf("Checking if shop already exists in database")
+
+	err = db.QueryRow("SELECT name FROM shops WHERE name = $1", newShop.Name).Scan(&newShop.Name)
+	if err != nil && err != sql.ErrNoRows {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err != sql.ErrNoRows {
+		w.Write([]byte("You are already part of federation"))
+		return
+	}
+
 	log.Printf("Inserting into database")
 
-	_, err = db.Exec("INSERT INTO shops (name, webhookURL, publicKey) VALUES ($1, $2, $3)", newShop.Name, newShop.WebhookURL, newShop.PublicKey)
+	_, err = db.Exec("INSERT INTO shops (name, webhookURL, publicKey, description) VALUES ($1, $2, $3, $4)", newShop.Name, newShop.WebhookURL, newShop.PublicKey, newShop.Description)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -141,7 +158,7 @@ func main() {
 	router.HandleFunc("/shops", getShops).Methods("GET")
 	router.HandleFunc("/shops", addShop).Methods("POST")
 
-	port := ":8000"
+	port := os.Getenv("HUB_PORT")
 	log.Printf("Federation hub is running on port%s", port)
 
 	http.ListenAndServe(port, router)

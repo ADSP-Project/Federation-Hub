@@ -41,7 +41,8 @@ This repository contains the code for setting up a federated marketplace using G
         ``CREATE TABLE shops (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255),
-        webhookURL VARCHAR(255)
+        description VARCHAR(255),
+        webhookURL VARCHAR(255),
         publicKey VARCHAR(1024)
         );``
 
