@@ -159,7 +159,7 @@ func main() {
 	router.HandleFunc("/shops", addShop).Methods("POST")
 
 	port := os.Getenv("HUB_PORT")
-	log.Printf("Federation hub is running on port%s", port)
+	log.Printf("Federation hub is running on port %s", port)
 
-	http.ListenAndServe(port, router)
+	http.ListenAndServe(":"+port, router)
 }
