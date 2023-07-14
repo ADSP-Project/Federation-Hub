@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hub-db
+  labels:
+    name: hub-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hub-db
+  template:
+    metadata:
+      labels:
+        app: hub-db
+    spec:
+      containers:
+      - name: hub-db
+        image: hub-db
+        env:
+        - name: DB_HOST
+          value: hub-db
+        - name: DB_USER
+          value: user
+        - name: DB_PASSWORD
+          value: password
+        - name: DB_NAME
+          value: shops
+        - name: HUB_PORT
+          value: "8092"
+        - name: AUTH_SERVER
+          value: auth
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hub-db
+  labels:
+    name: hub-db
+spec:
+  ports:
+  - port: 5433
+    targetPort: 5433
+  selector:
+    app: hub-db
