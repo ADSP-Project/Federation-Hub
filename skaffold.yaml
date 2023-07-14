@@ -9,7 +9,7 @@ build:
     docker:
       dockerfile:
         Dockerfile-auth
-  - image: db
+  - image: hub-db
     context: .
     docker:
       dockerfile:
