@@ -3,7 +3,6 @@ FROM golang:1.18 AS builder
 WORKDIR /app
 RUN go get github.com/ADSP-Project/Federation-Hub
 COPY . .
-RUN go mod download
 RUN CGO_ENABLED=0 GOOS=linux go build -o authServer .
 
 # Final stage
