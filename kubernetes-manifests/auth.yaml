@@ -28,7 +28,7 @@ spec:
         - name: DB_NAME
           value: shops
         - name: HUB_PORT
-          value: 8092
+          value: "8092"
         - name: AUTH_SERVER
           value: auth
 ---
