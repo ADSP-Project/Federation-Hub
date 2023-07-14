@@ -1,0 +1,31 @@
+apiVersion: skaffold/v3
+kind: Config
+metadata:
+  name: app
+build:
+  artifacts:
+  - image: auth
+    context: .
+    docker:
+      dockerfile:
+        Dockerfile-auth
+  - image: db
+    context: .
+    docker:
+      dockerfile:
+        Dockerfile-DB
+  - image: main
+    context: .
+    docker:
+      dockerfile:
+        Dockerfile-main
+  tagPolicy:
+    gitCommit: {}
+  local:
+    useBuildkit: true
+manifests:
+  kustomize:
+    paths:
+    - kubernetes-manifests
+deploy:
+  kubectl: {}

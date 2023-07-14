@@ -1,0 +1,47 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth
+  labels:
+    name: auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+      - name: auth
+        image: auth
+        env:
+        - name: DB_HOST
+          value: hub-db
+        - name: DB_USER
+          value: user
+        - name: DB_PASSWORD
+          value: password
+        - name: DB_NAME
+          value: shops
+        - name: HUB_PORT
+          value: 8092
+        - name: AUTH_SERVER
+          value: auth
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth
+  labels:
+    name: auth
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8463
+    targetPort: 8463
+  selector:
+    app: auth
