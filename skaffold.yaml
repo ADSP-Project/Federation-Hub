@@ -5,17 +5,17 @@ metadata:
 build:
   artifacts:
   - image: auth
-    context: federation-hub
+    context: .
     docker:
       dockerfile:
         Dockerfile-auth
   - image: hub-db
-    context: federation-hub
+    context: .
     docker:
       dockerfile:
         Dockerfile-DB
   - image: main
-    context: federation-hub
+    context: .
     docker:
       dockerfile:
         Dockerfile-main
