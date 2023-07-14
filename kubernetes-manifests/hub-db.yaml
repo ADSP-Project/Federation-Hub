@@ -39,7 +39,7 @@ metadata:
     name: hub-db
 spec:
   ports:
-  - port: 5432
-    targetPort: 5432
+  - port: 5433
+    targetPort: 5433
   selector:
     app: hub-db
