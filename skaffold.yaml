@@ -7,18 +7,15 @@ build:
   - image: auth
     context: .
     docker:
-      dockerfile:
-        Dockerfile-auth
+      dockerfile: Dockerfile-auth
   - image: hub-db
     context: .
     docker:
-      dockerfile:
-        Dockerfile-DB
+      dockerfile: Dockerfile-DB
   - image: main
     context: .
     docker:
-      dockerfile:
-        Dockerfile-main
+      dockerfile: Dockerfile-main
   tagPolicy:
     gitCommit: {}
   local:
