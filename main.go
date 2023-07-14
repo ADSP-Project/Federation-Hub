@@ -15,9 +15,9 @@ import (
 )
 
 type Shop struct {
-	Name       string `json:"name"`
-	WebhookURL string `json:"webhookURL"`
-	PublicKey string `json:"publicKey"`
+	Name        string `json:"name"`
+	WebhookURL  string `json:"webhookURL"`
+	PublicKey   string `json:"publicKey"`
 	Description string `json:"description"`
 }
 
@@ -36,10 +36,10 @@ func getShops(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var shop Shop
 		var (
-			shopnameVar   string
-			webhookURL    string
-			PublicKey     string
-			description   string
+			shopnameVar string
+			webhookURL  string
+			PublicKey   string
+			description string
 		)
 
 		if err := rows.Scan(&shopnameVar, &webhookURL, &PublicKey, &description); err != nil {
@@ -139,10 +139,10 @@ func sendWebhook(webhookURL string, newShop Shop) {
 }
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		panic("Error loading .env file")
-	}
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	panic("Error loading .env file")
+	// }
 
 	dbUser := os.Getenv("DB_USER")
 	dbPassword := os.Getenv("DB_PASSWORD")
