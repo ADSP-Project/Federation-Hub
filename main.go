@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -26,6 +27,7 @@ var db *sql.DB
 func getShops(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Polling request received...Checking database....")
 	rows, err := db.Query("SELECT name, webhookURL, publicKey, description FROM shops")
+	log.Printf()
 	if err != nil {
 		log.Printf("%v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -142,7 +144,7 @@ func sendWebhook(webhookURL string, newShop Shop) {
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		panic("Error loading .env file")
+		log.Fatal("Error loading .env file")
 	}
 
 	dbUser := os.Getenv("DB_USER")
@@ -154,7 +156,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
 
 	router := mux.NewRouter()
 	router.HandleFunc("/shops", getShops).Methods("GET")
@@ -163,5 +164,18 @@ func main() {
 	port := os.Getenv("HUB_PORT")
 	log.Printf("Federation hub is running on port %s", port)
 
-	http.ListenAndServe(":"+port, router)
+	// Here, you run your server in a separate goroutine.
+	go func() {
+		err := http.ListenAndServe(":"+port, router)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	// Then you wait for an interrupt signal to cleanup.
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	<-c
+	db.Close()
+	log.Println("Shutting down the server...")
 }
