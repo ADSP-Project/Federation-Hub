@@ -92,3 +92,10 @@ This repository contains the code for setting up a federated marketplace using G
 
 9. Additional Notes:
    - You can run multiple instances of the shop server by providing different port numbers and shop names.
+
+
+## Run with skaffold
+
+   minikube start --profile hub
+
+   skaffold run

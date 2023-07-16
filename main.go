@@ -15,9 +15,9 @@ import (
 )
 
 type Shop struct {
-	Name       string `json:"name"`
-	WebhookURL string `json:"webhookURL"`
-	PublicKey string `json:"publicKey"`
+	Name        string `json:"name"`
+	WebhookURL  string `json:"webhookURL"`
+	PublicKey   string `json:"publicKey"`
 	Description string `json:"description"`
 }
 
@@ -36,10 +36,10 @@ func getShops(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var shop Shop
 		var (
-			shopnameVar   string
-			webhookURL    string
-			PublicKey     string
-			description   string
+			shopnameVar string
+			webhookURL  string
+			PublicKey   string
+			description string
 		)
 
 		if err := rows.Scan(&shopnameVar, &webhookURL, &PublicKey, &description); err != nil {
@@ -159,7 +159,7 @@ func main() {
 	router.HandleFunc("/shops", addShop).Methods("POST")
 
 	port := os.Getenv("HUB_PORT")
-	log.Printf("Federation hub is running on port%s", port)
+	log.Printf("Federation hub is running on port %s", port)
 
-	http.ListenAndServe(port, router)
+	http.ListenAndServe(":"+port, router)
 }
