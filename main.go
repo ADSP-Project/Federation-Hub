@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -164,18 +165,27 @@ func main() {
 	port := os.Getenv("HUB_PORT")
 	log.Printf("Federation hub is running on port %s", port)
 
-	// Here, you run your server in a separate goroutine.
+	// Create a WaitGroup to wait for the server goroutine to finish
+	var wg sync.WaitGroup
+	wg.Add(1)
+
 	go func() {
+		defer wg.Done()
+
 		err := http.ListenAndServe(":"+port, router)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}()
 
-	// Then you wait for an interrupt signal to cleanup.
+	// Wait for an interrupt signal to cleanup
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	<-c
+
+	// Signal the server goroutine to stop and wait for it to finish
+	wg.Wait()
+
 	db.Close()
 	log.Println("Shutting down the server...")
 }
