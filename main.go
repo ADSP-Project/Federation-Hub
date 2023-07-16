@@ -27,6 +27,7 @@ func getShops(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Polling request received...Checking database....")
 	rows, err := db.Query("SELECT name, webhookURL, publicKey, description FROM shops")
 	if err != nil {
+		log.Printf("%v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
