@@ -27,7 +27,6 @@ var db *sql.DB
 func getShops(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Polling request received...Checking database....")
 	rows, err := db.Query("SELECT name, webhookURL, publicKey, description FROM shops")
-	log.Printf()
 	if err != nil {
 		log.Printf("%v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -37,6 +36,7 @@ func getShops(w http.ResponseWriter, r *http.Request) {
 
 	var shops []Shop
 	for rows.Next() {
+		log.Printf("COMING HERE")
 		var shop Shop
 		var (
 			shopnameVar string
